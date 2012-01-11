@@ -1,0 +1,5 @@
+Version 1
+
+- initial release.
+  High speed SPI direct connection mode with many support functions, two example projects included, dmd_demo and dmd_clock_readout
+
