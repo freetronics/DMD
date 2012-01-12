@@ -42,6 +42,7 @@
 #include <SPI.h>        //SPI.h must be included as DMD is written by SPI (the IDE complains otherwise)
 #include <DMD.h>        //
 #include <TimerOne.h>   //
+#include "Arial_black_16.h"
 
 //Fire up the DMD library as dmd
 DMD dmd;
@@ -61,14 +62,15 @@ void ScanDMD()
 --------------------------------------------------------------------------------------*/
 void ShowClockNumbers( unsigned int uiTime, byte bColonOn )
 {
-   dmd.drawCharacter_6x16(  0,  0, '0'+((uiTime%10000)/1000), GRAPHICS_NORMAL );   // thousands
-   dmd.drawCharacter_6x16(  8,  0, '0'+((uiTime%1000) /100),  GRAPHICS_NORMAL );   // hundreds
-   dmd.drawCharacter_6x16( 18,  0, '0'+((uiTime%100)  /10),   GRAPHICS_NORMAL );   // tens
-   dmd.drawCharacter_6x16( 26,  0, '0'+ (uiTime%10),          GRAPHICS_NORMAL );   // units
+   dmd.clearScreen(true);
+   dmd.drawChar(  1,  3,'0'+((uiTime%10000)/1000), GRAPHICS_NORMAL );   // thousands
+   dmd.drawChar(  8,  3, '0'+((uiTime%1000) /100),  GRAPHICS_NORMAL );   // hundreds
+   dmd.drawChar( 17,  3, '0'+((uiTime%100)  /10),   GRAPHICS_NORMAL );   // tens
+   dmd.drawChar( 25,  3, '0'+ (uiTime%10),          GRAPHICS_NORMAL );   // units
    if( bColonOn )
-      dmd.drawCharacter_6x16( 13,  0, ':', GRAPHICS_OR     );   // clock colon overlay on
+      dmd.drawChar( 15,  3, ':', GRAPHICS_OR     );   // clock colon overlay on
    else
-      dmd.drawCharacter_6x16( 13,  0, ':', GRAPHICS_NOR    );   // clock colon overlay off
+      dmd.drawChar( 15,  3, ':', GRAPHICS_NOR    );   // clock colon overlay off
 }
 
 /*--------------------------------------------------------------------------------------
@@ -84,6 +86,7 @@ void setup(void)
 
    //clear/init the DMD pixels held in RAM
    dmd.clearScreen( true );   //true is normal (all pixels off), false is negative (all pixels on)
+   dmd.selectFont(Arial_Black_16);
 
 }
 
@@ -95,7 +98,7 @@ void loop(void)
 {
    unsigned int ui;
    
-   // 6 x 16 font clock, including demo of OR and NOR modes for pixels so that the flashing colon can be overlayed
+   // 10 x 14 font clock, including demo of OR and NOR modes for pixels so that the flashing colon can be overlayed
    ui = 1234;
    ShowClockNumbers( ui, true );
    delay( 1000 );

@@ -59,7 +59,7 @@ LED Panel Layout in RAM
 #define PIN_DMD_R_DATA    11   // D11_MOSI is SPI Master Out if SPI is used
 //Define this chip select pin that the Ethernet W5100 IC or other SPI device uses
 //if it is in use during a DMD scan request then scanDisplayBySPI() will exit without conflict! (and skip that scan)
-//#define PIN_OTHER_SPI_nCS  10
+#define PIN_OTHER_SPI_nCS 10
 // ######################################################################################################################
 // ######################################################################################################################
 
@@ -78,11 +78,16 @@ LED Panel Layout in RAM
 #define OE_DMD_ROWS_ON()                  { digitalWrite( PIN_DMD_nOE, HIGH ); }
 
 //Pixel/graphics writing modes (bGraphicsMode)
-#define GRAPHICS_NORMAL   0
-#define GRAPHICS_INVERSE  1
-#define GRAPHICS_TOGGLE   2
-#define GRAPHICS_OR       3
-#define GRAPHICS_NOR      4
+#define GRAPHICS_NORMAL    0
+#define GRAPHICS_INVERSE   1
+#define GRAPHICS_TOGGLE    2
+#define GRAPHICS_OR        3
+#define GRAPHICS_NOR       4
+#define GRAPHICS_UNBOUNDED 8
+
+//Text font
+#define FONT_5_7          0
+#define FONT_6_16         1
 
 //drawTestPattern Patterns
 #define PATTERN_ALT_0     0
@@ -109,6 +114,17 @@ static byte bPixelLookupTable[8] =
    0x01    //7, bit 0
 };
 
+// Font Indices
+#define FONT_LENGTH                     0
+#define FONT_FIXED_WIDTH        2
+#define FONT_HEIGHT                     3
+#define FONT_FIRST_CHAR         4
+#define FONT_CHAR_COUNT         5
+#define FONT_WIDTH_TABLE        6
+
+typedef uint8_t (*FontCallback)(const uint8_t*);
+
+
 //The main class of DMD library functions
 class DMD
 {
@@ -117,15 +133,12 @@ class DMD
     DMD();
 	//virtual ~DMD();
 
-	//Set or clear a pixel at the x and y location (0,0 is the top left corner)
-	void writePixel( byte bX, byte bY, byte bGraphicsMode, byte bPixel );
+  //Set or clear a pixel at the x and y location (0,0 is the top left corner)
+  void writePixel( byte bX, byte bY, byte bGraphicsMode, byte bPixel );
 
-	//Draw a character with the 5 x 7 font table at the x and y location. bSet true is on, false is inverted
-  void drawCharacter_5x7( byte bX, byte bY, byte bChar, byte bGraphicsMode );
-
-	//Draw a character with the 6 x 16 font table at the x and y location. bSet true is on, false is inverted
-	//The 6 x 16 font table is designed to be good for large clock and 4 digit number displays with a colon in the centre
-	void drawCharacter_6x16( byte bX, byte bY, byte bChar, byte bGraphicsMode );
+  void drawString( int bX, int bY, const char* bChars, byte length, byte bGraphicsMode);
+  void drawMarquee( const char* bChars, byte length, byte top);
+  boolean stepMarquee( int amount);
 
 	//Clear the screen in DMD RAM
   void clearScreen( byte bNormal );
@@ -149,12 +162,22 @@ class DMD
  	//Call 4 times to scan the whole display which is made up of 4 interleaved rows within the 16 total rows.
  	//Insert the calls to this function into the main loop for the highest call rate, or from a timer interrupt
 	void scanDisplayBySPI();
+    void selectFont(const uint8_t* font); // defualt arguments added, callback now last arg
+    int drawChar(int bX, int bY, const char letter, byte bGraphicsMode);
+    int charWidth(const char letter);
+
 
   private:
-  void drawCircleSub( int cx, int cy, int x, int y, byte bGraphicsMode );
+    void drawCircleSub( int cx, int cy, int x, int y, byte bGraphicsMode );
 
 	//Mirror of DMD pixels in RAM, ready to be clocked out by the main loop or high speed timer calls
 	byte bDMDScreenRAM[DMD_RAM_SIZE_BYTES];
+    char marqueeText[256];
+    int marqueeOffset;
+    byte marqueeLength;
+    int marqueeWidth;
+    byte marqueeTop;
+    const uint8_t* Font;
 
 	//scanning pointer into bDMDScreenRAM, setup init @ 48 for the first valid scan
 	volatile byte bDMDByte;

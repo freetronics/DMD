@@ -42,6 +42,8 @@
 #include <SPI.h>        //SPI.h must be included as DMD is written by SPI (the IDE complains otherwise)
 #include <DMD.h>        //
 #include <TimerOne.h>   //
+#include "SystemFont5x7.h"
+#include "Arial_black_16.h"
 
 //Fire up the DMD library as dmd
 DMD dmd;
@@ -79,23 +81,34 @@ void loop(void)
 {
    byte b;
    
-   // 6 x 16 font clock, including demo of OR and NOR modes for pixels so that the flashing colon can be overlayed
+   // 10 x 14 font clock, including demo of OR and NOR modes for pixels so that the flashing colon can be overlayed
    dmd.clearScreen( true );
-   dmd.drawCharacter_6x16(  0,  0, '2', GRAPHICS_NORMAL );
-   dmd.drawCharacter_6x16(  8,  0, '3', GRAPHICS_NORMAL );
-   dmd.drawCharacter_6x16( 18,  0, '4', GRAPHICS_NORMAL );
-   dmd.drawCharacter_6x16( 26,  0, '5', GRAPHICS_NORMAL );
-   dmd.drawCharacter_6x16( 13,  0, ':', GRAPHICS_OR     );   // clock colon overlay on
+   dmd.selectFont(Arial_Black_16);
+   dmd.drawChar(  1,  3, '2', GRAPHICS_NORMAL );
+   dmd.drawChar(  8,  3, '3', GRAPHICS_NORMAL );
+   dmd.drawChar( 17,  3, '4', GRAPHICS_NORMAL );
+   dmd.drawChar( 25,  3, '5', GRAPHICS_NORMAL );
+   dmd.drawChar( 15,  3, ':', GRAPHICS_OR     );   // clock colon overlay on
    delay( 1000 );
-   dmd.drawCharacter_6x16( 13,  0, ':', GRAPHICS_NOR    );   // clock colon overlay off
+   dmd.drawChar( 15,  3, ':', GRAPHICS_NOR    );   // clock colon overlay off
    delay( 1000 );
-   dmd.drawCharacter_6x16( 13,  0, ':', GRAPHICS_OR     );   // clock colon overlay on
+   dmd.drawChar( 15,  3, ':', GRAPHICS_OR     );   // clock colon overlay on
    delay( 1000 );
-   dmd.drawCharacter_6x16( 13,  0, ':', GRAPHICS_NOR    );   // clock colon overlay off
+   dmd.drawChar( 15,  3, ':', GRAPHICS_NOR    );   // clock colon overlay off
    delay( 1000 );
-   dmd.drawCharacter_6x16( 13,  0, ':', GRAPHICS_OR     );   // clock colon overlay on
+   dmd.drawChar( 15,  3, ':', GRAPHICS_OR     );   // clock colon overlay on
    delay( 1000 );
 
+   dmd.drawMarquee("Scrolling Text",14,0);
+   long start=millis();
+   long timer=start;
+   boolean ret=false;
+   while(!ret){
+     if ((timer+30) < millis()) {
+       ret=dmd.stepMarquee(1);
+       timer=millis();
+     }
+   }
    // half the pixels on
    dmd.drawTestPattern( PATTERN_ALT_0 );
    delay( 1000 );
@@ -106,16 +119,9 @@ void loop(void)
    
    // display some text
    dmd.clearScreen( true );
-   dmd.drawCharacter_5x7(  0+2,  0, 'f', GRAPHICS_NORMAL );
-   dmd.drawCharacter_5x7(  6+2,  0, 'r', GRAPHICS_NORMAL );
-   dmd.drawCharacter_5x7( 12+2,  0, 'e', GRAPHICS_NORMAL );
-   dmd.drawCharacter_5x7( 18+2,  0, 'e', GRAPHICS_NORMAL );
-   dmd.drawCharacter_5x7( 24+2,  0, 't', GRAPHICS_NORMAL );
-   dmd.drawCharacter_5x7(  0+2,  8, 'r', GRAPHICS_NORMAL );
-   dmd.drawCharacter_5x7(  6+2,  8, 'o', GRAPHICS_NORMAL );
-   dmd.drawCharacter_5x7( 12+2,  8, 'n', GRAPHICS_NORMAL );
-   dmd.drawCharacter_5x7( 18+2,  8, 'i', GRAPHICS_NORMAL );
-   dmd.drawCharacter_5x7( 24+2,  8, 'c', GRAPHICS_NORMAL );
+   dmd.selectFont(System5x7);
+   dmd.drawString(  2,  1, "freet", 5, GRAPHICS_NORMAL );
+   dmd.drawString(  2,  9, "ronic", 5, GRAPHICS_NORMAL );
    delay( 2000 );
    
    // draw a border rectangle around the outside of the display
