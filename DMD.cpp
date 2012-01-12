@@ -99,27 +99,26 @@ void
     case GRAPHICS_NORMAL:
 	{
 	    if (bPixel == true)
-		bDMDScreenRAM[uiDMDRAMPointer] &= ~(bPixelLookupTable[bX & 0x07]);	// zero bit is pixel on
+		    bDMDScreenRAM[uiDMDRAMPointer] &= ~(bPixelLookupTable[bX & 0x07]);	// zero bit is pixel on
 	    else
-		bDMDScreenRAM[uiDMDRAMPointer] |= (bPixelLookupTable[bX & 0x07]);	// one bit is pixel off
+		    bDMDScreenRAM[uiDMDRAMPointer] |= (bPixelLookupTable[bX & 0x07]);	// one bit is pixel off
 	    break;
 	}
     case GRAPHICS_INVERSE:
 	{
 	    if (bPixel == false)
-		bDMDScreenRAM[uiDMDRAMPointer] &= ~(bPixelLookupTable[bX & 0x07]);	// zero bit is pixel on
+		    bDMDScreenRAM[uiDMDRAMPointer] &= ~(bPixelLookupTable[bX & 0x07]);	// zero bit is pixel on
 	    else
-		bDMDScreenRAM[uiDMDRAMPointer] |= (bPixelLookupTable[bX & 0x07]);	// one bit is pixel off
+		    bDMDScreenRAM[uiDMDRAMPointer] |= (bPixelLookupTable[bX & 0x07]);	// one bit is pixel off
 	    break;
 	}
     case GRAPHICS_TOGGLE:
 	{
 	    if (bPixel == true) {
-		if ((bDMDScreenRAM[uiDMDRAMPointer] &
-		     (bPixelLookupTable[bX & 0x07])) == 0)
-		    bDMDScreenRAM[uiDMDRAMPointer] |= (bPixelLookupTable[bX & 0x07]);	// one bit is pixel off
-		else
-		    bDMDScreenRAM[uiDMDRAMPointer] &= ~(bPixelLookupTable[bX & 0x07]);	// one bit is pixel off
+		    if ((bDMDScreenRAM[uiDMDRAMPointer] & (bPixelLookupTable[bX & 0x07])) == 0)
+		        bDMDScreenRAM[uiDMDRAMPointer] |= (bPixelLookupTable[bX & 0x07]);	// one bit is pixel off
+		    else
+		        bDMDScreenRAM[uiDMDRAMPointer] &= ~(bPixelLookupTable[bX & 0x07]);	// one bit is pixel off
 	    }
 	    break;
 	}
@@ -127,18 +126,15 @@ void
 	{
 	    //only set pixels on
 	    if (bPixel == true)
-		bDMDScreenRAM[uiDMDRAMPointer] &= ~(bPixelLookupTable[bX & 0x07]);	// zero bit is pixel on
+		    bDMDScreenRAM[uiDMDRAMPointer] &= ~(bPixelLookupTable[bX & 0x07]);	// zero bit is pixel on
 	    break;
 	}
     case GRAPHICS_NOR:
 	{
 	    //only clear on pixels
-	    if ((bPixel == true)
-		&&
-		((bDMDScreenRAM[uiDMDRAMPointer] &
-		  (bPixelLookupTable[bX & 0x07]))
-		 == 0))
-		bDMDScreenRAM[uiDMDRAMPointer] |= (bPixelLookupTable[bX & 0x07]);	// one bit is pixel off
+	    if ((bPixel == true) &&
+           ((bDMDScreenRAM[uiDMDRAMPointer] & (bPixelLookupTable[bX & 0x07])) == 0))
+		    bDMDScreenRAM[uiDMDRAMPointer] |= (bPixelLookupTable[bX & 0x07]);	// one bit is pixel off
 	    break;
 	}
     }
@@ -160,12 +156,10 @@ void DMD::drawString(int bX, int bY, const char *bChars, byte length,
 	int charWide = charWidth(bChars[i]);
 	if (charWide > 0) {
 	    strWidth += charWide + 1;
-	    if (cX >= -charWide)
-		this->drawChar(cX, cY, bChars[i], bGraphicsMode);
+	    if (cX >= -charWide) this->drawChar(cX, cY, bChars[i], bGraphicsMode);
 	    cX = bX + strWidth;
 	    cY = bY;
-	    this->drawLine(cX - 1, cY, cX - 1, cY + height,
-			   GRAPHICS_INVERSE);
+	    this->drawLine(cX - 1, cY, cX - 1, cY + height, GRAPHICS_INVERSE);
 	}
 	if (cX >= DMD_PIXELS_ACROSS || cY >= DMD_PIXELS_DOWN)
 	    return;
@@ -176,8 +170,8 @@ void DMD::drawMarquee(const char *bChars, byte length, byte top)
 {
     marqueeWidth = 0;
     for (int i = 0; i < length; i++) {
-	marqueeText[i] = bChars[i];
-	marqueeWidth += charWidth(bChars[i]) + 1;
+	    marqueeText[i] = bChars[i];
+	    marqueeWidth += charWidth(bChars[i]) + 1;
     }
     marqueeText[length] = '\0';
     marqueeOffset = DMD_PIXELS_ACROSS*DisplaysWide;
@@ -194,8 +188,7 @@ boolean DMD::stepMarquee(int amount)
 	    clearScreen(true);
         ret=true;
     }
-    drawString(marqueeOffset, marqueeTop, marqueeText, marqueeLength,
-	       GRAPHICS_NORMAL);
+    drawString(marqueeOffset, marqueeTop, marqueeText, marqueeLength, GRAPHICS_NORMAL);
     return ret;
 }
 
@@ -351,23 +344,19 @@ void DMD::drawTestPattern(byte bPattern)
 		if ((ui & 1) == 0) {
 		    //even pixel
 		    if ((ui & 32) == 0)
-			//even row
-			writePixel((ui & 31), ((ui & ~31) / 32),
-				   GRAPHICS_NORMAL, true);
+			    //even row
+			    writePixel((ui & 31), ((ui & ~31) / 32), GRAPHICS_NORMAL, true);
 		    else
-			//odd row
-			writePixel((ui & 31), ((ui & ~31) / 32),
-				   GRAPHICS_NORMAL, false);
+			    //odd row
+			    writePixel((ui & 31), ((ui & ~31) / 32), GRAPHICS_NORMAL, false);
 		} else {
 		    //odd pixel
 		    if ((ui & 32) == 0)
-			//even row
-			writePixel((ui & 31), ((ui & ~31) / 32),
-				   GRAPHICS_NORMAL, false);
+			    //even row
+			    writePixel((ui & 31), ((ui & ~31) / 32), GRAPHICS_NORMAL, false);
 		    else
-			//odd row
-			writePixel((ui & 31), ((ui & ~31) / 32),
-				   GRAPHICS_NORMAL, true);
+			    //odd row
+			    writePixel((ui & 31), ((ui & ~31) / 32), GRAPHICS_NORMAL, true);
 		}
 		break;
 	    }
@@ -376,23 +365,19 @@ void DMD::drawTestPattern(byte bPattern)
 		if ((ui & 1) == 0) {
 		    //even pixel
 		    if ((ui & 32) == 0)
-			//even row
-			writePixel((ui & 31), ((ui & ~31) / 32),
-				   GRAPHICS_NORMAL, false);
+			    //even row
+			    writePixel((ui & 31), ((ui & ~31) / 32), GRAPHICS_NORMAL, false);
 		    else
-			//odd row
-			writePixel((ui & 31), ((ui & ~31) / 32),
-				   GRAPHICS_NORMAL, true);
+			    //odd row
+			    writePixel((ui & 31), ((ui & ~31) / 32), GRAPHICS_NORMAL, true);
 		} else {
 		    //odd pixel
 		    if ((ui & 32) == 0)
-			//even row
-			writePixel((ui & 31), ((ui & ~31) / 32),
-				   GRAPHICS_NORMAL, true);
+			    //even row
+			    writePixel((ui & 31), ((ui & ~31) / 32), GRAPHICS_NORMAL, true);
 		    else
-			//odd row
-			writePixel((ui & 31), ((ui & ~31) / 32),
-				   GRAPHICS_NORMAL, false);
+			    //odd row
+			    writePixel((ui & 31), ((ui & ~31) / 32), GRAPHICS_NORMAL, false);
 		}
 		break;
 	    }
@@ -400,24 +385,20 @@ void DMD::drawTestPattern(byte bPattern)
 	    {
 		if ((ui & 1) == 0)
 		    //even pixel
-		    writePixel((ui & 31), ((ui & ~31) / 32),
-			       GRAPHICS_NORMAL, true);
+		    writePixel((ui & 31), ((ui & ~31) / 32), GRAPHICS_NORMAL, true);
 		else
 		    //odd pixel
-		    writePixel((ui & 31), ((ui & ~31) / 32),
-			       GRAPHICS_NORMAL, false);
+		    writePixel((ui & 31), ((ui & ~31) / 32), GRAPHICS_NORMAL, false);
 		break;
 	    }
 	case PATTERN_STRIPE_1:	// vertical stripes, first stripe off
 	    {
 		if ((ui & 1) == 0)
 		    //even pixel
-		    writePixel((ui & 31), ((ui & ~31) / 32),
-			       GRAPHICS_NORMAL, false);
+		    writePixel((ui & 31), ((ui & ~31) / 32), GRAPHICS_NORMAL, false);
 		else
 		    //odd pixel
-		    writePixel((ui & 31), ((ui & ~31) / 32),
-			       GRAPHICS_NORMAL, true);
+		    writePixel((ui & 31), ((ui & ~31) / 32), GRAPHICS_NORMAL, true);
 		break;
 	    }
 	}
@@ -479,10 +460,9 @@ int DMD::drawChar(int bX, int bY, const char letter, byte bGraphicsMode)
     char c = letter;
     uint8_t height = pgm_read_byte(this->Font + FONT_HEIGHT);
     if (c == ' ') {
-	int charWide = charWidth('n');
-	this->drawFilledBox(bX, bY, bX + charWide, bY + height,
-			    GRAPHICS_INVERSE);
-	return 0;
+	    int charWide = charWidth('n');
+	    this->drawFilledBox(bX, bY, bX + charWide, bY + height, GRAPHICS_INVERSE);
+	    return 0;
     }
     uint8_t width = 0;
     uint8_t bytes = (height + 7) / 8;
@@ -492,9 +472,7 @@ int DMD::drawChar(int bX, int bY, const char letter, byte bGraphicsMode)
 
     uint16_t index = 0;
 
-    if (c < firstChar || c >= (firstChar + charCount)) {
-	return 1;
-    }
+    if (c < firstChar || c >= (firstChar + charCount)) return 1;
     c -= firstChar;
 
     if (pgm_read_byte(this->Font + FONT_LENGTH) == 0
@@ -510,32 +488,26 @@ int DMD::drawChar(int bX, int bY, const char letter, byte bGraphicsMode)
 	    index = index * bytes + charCount + FONT_WIDTH_TABLE;
 	    width = pgm_read_byte(this->Font + FONT_WIDTH_TABLE + c);
     }
-    if (bX > (DMD_PIXELS_ACROSS*DisplaysWide) || bY > (DMD_PIXELS_DOWN*DisplaysHigh) || bX < -width || bY < -height)
-	    return -1;
+    if (bX > (DMD_PIXELS_ACROSS*DisplaysWide) || bY > (DMD_PIXELS_DOWN*DisplaysHigh) || bX < -width || bY < -height) return -1;
     // last but not least, draw the character
-    for (uint8_t j = 0; j < width; j++) {
-	for (uint8_t i = bytes - 1; i < 254; i--) {
-	    uint8_t data =
-		pgm_read_byte(this->Font + index + j + (i * width));
-	    for (uint8_t k = 0; k < 8; k++) {
-		int offset = (i * 8) + k;
-		if ((i == bytes - 1) && bytes > 1) {
-		    offset = offset - (8 - (height - (i * 8)));
-		    if (offset < i * 8) {
-			offset = 255;
-		    }
-		}
-		if (offset <= height) {
-		    if (data & (1 << k)) {
-			writePixel(bX + j, bY + offset, bGraphicsMode,
-				   true);
-		    } else {
-			writePixel(bX + j, bY + offset, bGraphicsMode,
-				   false);
-		    }
-		}
+    for (uint8_t j = 0; j < width; j++) { // Width
+	    for (uint8_t i = bytes - 1; i < 254; i--) { // Vertical bytes
+	        uint8_t data = pgm_read_byte(this->Font + index + j + (i * width));
+	        for (uint8_t k = 0; k < 8; k++) { // Vertical bits
+		        int offset = (i * 8) + k;
+		        if ((i == bytes - 1) && bytes > 1) {
+		            offset = offset - (8 - (height - (i * 8)));
+		            if (offset < i * 8) offset = 255;
+		        }
+		        if (offset <= height) {
+		            if (data & (1 << k)) {
+			            writePixel(bX + j, bY + offset, bGraphicsMode, true);
+		            } else {
+			            writePixel(bX + j, bY + offset, bGraphicsMode, false);
+		            }
+		        }
+	        }
 	    }
-	}
     }
     return 0;
 }
