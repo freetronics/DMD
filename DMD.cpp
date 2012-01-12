@@ -81,7 +81,7 @@ void
 
     if (!(bGraphicsMode & GRAPHICS_UNBOUNDED)) {
         if (bX<0 || bY<0) return;
-	    if (bX > (DMD_PIXELS_ACROSS*DisplaysWide) || bY > (DMD_PIXELS_DOWN*DisplaysHigh)) {
+	    if (bX >= (DMD_PIXELS_ACROSS*DisplaysWide) || bY >= (DMD_PIXELS_DOWN*DisplaysHigh)) {
 	        return;
 	    }
     } else {
@@ -148,8 +148,7 @@ void
 void DMD::drawString(int bX, int bY, const char *bChars, byte length,
 		     byte bGraphicsMode)
 {
-    if (bX > DMD_PIXELS_ACROSS || bY > DMD_PIXELS_DOWN)
-	return;
+    if (bX >= (DMD_PIXELS_ACROSS * DisplaysWide) || bY > (DMD_PIXELS_DOWN * DisplaysHigh)) return;
     uint8_t height = pgm_read_byte(this->Font + FONT_HEIGHT);
 
     int maxLetters = 0;
@@ -181,7 +180,7 @@ void DMD::drawMarquee(const char *bChars, byte length, byte top)
 	marqueeWidth += charWidth(bChars[i]) + 1;
     }
     marqueeText[length] = '\0';
-    marqueeOffset = DMD_PIXELS_ACROSS;
+    marqueeOffset = DMD_PIXELS_ACROSS*DisplaysWide;
     marqueeLength = length;
     marqueeTop = top;
 }
@@ -191,7 +190,7 @@ boolean DMD::stepMarquee(int amount)
     boolean ret=false;
     marqueeOffset -= amount;
     if (marqueeOffset < -(marqueeWidth)) {
-	    marqueeOffset = DMD_PIXELS_ACROSS;
+	    marqueeOffset = DMD_PIXELS_ACROSS*DisplaysWide;
 	    clearScreen(true);
         ret=true;
     }
@@ -438,10 +437,10 @@ void DMD::scanDisplayBySPI()
         //SPI transfer 128 pixels to the display hardware shift registers
         for (byte panel=0;panel<DisplaysTotal;panel++){
             for (byte i=0;i<4;i++) {
-                SPI.transfer(bDMDScreenRAM[bDMDByte + i]);
-                SPI.transfer(bDMDScreenRAM[bDMDByte + i - 16]);
-                SPI.transfer(bDMDScreenRAM[bDMDByte + i - 32]);
-                SPI.transfer(bDMDScreenRAM[bDMDByte + i - 48]);
+                SPI.transfer(bDMDScreenRAM[bDMDByte + (panel*DMD_RAM_SIZE_BYTES) + i]);
+                SPI.transfer(bDMDScreenRAM[bDMDByte + (panel*DMD_RAM_SIZE_BYTES) + i - 16]);
+                SPI.transfer(bDMDScreenRAM[bDMDByte + (panel*DMD_RAM_SIZE_BYTES) + i - 32]);
+                SPI.transfer(bDMDScreenRAM[bDMDByte + (panel*DMD_RAM_SIZE_BYTES) + i - 48]);
             }
         }
 
@@ -511,9 +510,8 @@ int DMD::drawChar(int bX, int bY, const char letter, byte bGraphicsMode)
 	    index = index * bytes + charCount + FONT_WIDTH_TABLE;
 	    width = pgm_read_byte(this->Font + FONT_WIDTH_TABLE + c);
     }
-    if (bX > DMD_PIXELS_ACROSS || bY > DMD_PIXELS_DOWN || bX < -width
-	|| bY < -height)
-	return -1;
+    if (bX > (DMD_PIXELS_ACROSS*DisplaysWide) || bY > (DMD_PIXELS_DOWN*DisplaysHigh) || bX < -width || bY < -height)
+	    return -1;
     // last but not least, draw the character
     for (uint8_t j = 0; j < width; j++) {
 	for (uint8_t i = bytes - 1; i < 254; i--) {
