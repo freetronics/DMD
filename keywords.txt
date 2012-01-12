@@ -13,8 +13,12 @@ DMD					KEYWORD1
 #######################################
 
 writePixel			KEYWORD2
-drawCharacter_5x7	KEYWORD2
-drawCharacter_6x16	KEYWORD2
+drawString			KEYWORD2
+drawChar			KEYWORD2
+selectFont			KEYWORD2
+charWidth			KEYWORD2
+drawMarquee			KEYWORD2
+stepMarquee			KEYWORD2
 clearScreen			KEYWORD2
 drawLine			KEYWORD2
 drawCircle			KEYWORD2

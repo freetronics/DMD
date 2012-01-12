@@ -45,7 +45,7 @@
 #include "Arial_black_16.h"
 
 //Fire up the DMD library as dmd
-DMD dmd;
+DMD dmd(1,1);
 
 /*--------------------------------------------------------------------------------------
   Interrupt handler for Timer1 (TimerOne) driven DMD refresh scanning, this gets

@@ -130,11 +130,11 @@ class DMD
 {
   public:
     //Instantiate the DMD
-    DMD();
+    DMD(byte panelsWide, byte panelsHigh);
 	//virtual ~DMD();
 
   //Set or clear a pixel at the x and y location (0,0 is the top left corner)
-  void writePixel( byte bX, byte bY, byte bGraphicsMode, byte bPixel );
+  void writePixel( int bX, int bY, byte bGraphicsMode, byte bPixel );
 
   void drawString( int bX, int bY, const char* bChars, byte length, byte bGraphicsMode);
   void drawMarquee( const char* bChars, byte length, byte top);
@@ -144,16 +144,16 @@ class DMD
   void clearScreen( byte bNormal );
 
   //Draw or clear a line from x1,y1 to x2,y2
-  void drawLine( byte x1, byte y1, byte x2, byte y2, byte bGraphicsMode );
+  void drawLine( int x1, int y1, int x2, int y2, byte bGraphicsMode );
 
 	//Draw or clear a circle of radius r at x,y centre
   void drawCircle( int xCenter, int yCenter, int radius, byte bGraphicsMode );
 
 	//Draw or clear a box(rectangle) with a single pixel border
-  void drawBox( byte x1, byte y1, byte x2, byte y2, byte bGraphicsMode );
+  void drawBox( int x1, int y1, int x2, int y2, byte bGraphicsMode );
 
 	//Draw or clear a filled box(rectangle) with a single pixel border
-  void drawFilledBox( byte x1, byte y1, byte x2, byte y2, byte bGraphicsMode );
+  void drawFilledBox( int x1, int y1, int x2, int y2, byte bGraphicsMode );
 
   //Draw the selected test pattern
   void drawTestPattern( byte bPattern );
@@ -169,15 +169,18 @@ class DMD
 
   private:
     void drawCircleSub( int cx, int cy, int x, int y, byte bGraphicsMode );
+	byte *bDMDScreenRAM;
 
 	//Mirror of DMD pixels in RAM, ready to be clocked out by the main loop or high speed timer calls
-	byte bDMDScreenRAM[DMD_RAM_SIZE_BYTES];
     char marqueeText[256];
     int marqueeOffset;
     byte marqueeLength;
     int marqueeWidth;
     byte marqueeTop;
     const uint8_t* Font;
+    byte DisplaysWide;
+    byte DisplaysHigh;
+    byte DisplaysTotal;
 
 	//scanning pointer into bDMDScreenRAM, setup init @ 48 for the first valid scan
 	volatile byte bDMDByte;
