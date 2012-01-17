@@ -63,11 +63,6 @@ LED Panel Layout in RAM
 // ######################################################################################################################
 // ######################################################################################################################
 
-//Handy defines
-#define  ASCIINUMBASE      0x30  //base value for ascii number '0'
-#define  CHAR_CR           0x0D  //carriage return character
-#define  CHAR_LF           0x0A  //line feed character
-
 //DMD I/O pin macros
 #define LIGHT_DMD_ROW_01_05_09_13()       { digitalWrite( PIN_DMD_B,  LOW ); digitalWrite( PIN_DMD_A,  LOW ); }
 #define LIGHT_DMD_ROW_02_06_10_14()       { digitalWrite( PIN_DMD_B,  LOW ); digitalWrite( PIN_DMD_A, HIGH ); }
@@ -83,11 +78,6 @@ LED Panel Layout in RAM
 #define GRAPHICS_TOGGLE    2
 #define GRAPHICS_OR        3
 #define GRAPHICS_NOR       4
-#define GRAPHICS_UNBOUNDED 8
-
-//Text font
-#define FONT_5_7          0
-#define FONT_6_16         1
 
 //drawTestPattern Patterns
 #define PATTERN_ALT_0     0
@@ -115,9 +105,9 @@ static byte bPixelLookupTable[8] =
 };
 
 // Font Indices
-#define FONT_LENGTH                     0
+#define FONT_LENGTH             0
 #define FONT_FIXED_WIDTH        2
-#define FONT_HEIGHT                     3
+#define FONT_HEIGHT             3
 #define FONT_FIRST_CHAR         4
 #define FONT_CHAR_COUNT         5
 #define FONT_WIDTH_TABLE        6
@@ -136,54 +126,71 @@ class DMD
   //Set or clear a pixel at the x and y location (0,0 is the top left corner)
   void writePixel( int bX, int bY, byte bGraphicsMode, byte bPixel );
 
+  //Draw a string
   void drawString( int bX, int bY, const char* bChars, byte length, byte bGraphicsMode);
+
+  //Select a text font
+  void selectFont(const uint8_t* font);
+
+  //Draw a single character
+  int drawChar(const int bX, const int bY, const char letter, byte bGraphicsMode);
+
+  //Find the width of a character
+  int charWidth(const char letter);
+
+  //Draw a scrolling string
   void drawMarquee( const char* bChars, byte length, byte top);
+
+  //Move the maquee accross by amount
   boolean stepMarquee( int amount);
 
-	//Clear the screen in DMD RAM
+  //Clear the screen in DMD RAM
   void clearScreen( byte bNormal );
 
   //Draw or clear a line from x1,y1 to x2,y2
   void drawLine( int x1, int y1, int x2, int y2, byte bGraphicsMode );
 
-	//Draw or clear a circle of radius r at x,y centre
+  //Draw or clear a circle of radius r at x,y centre
   void drawCircle( int xCenter, int yCenter, int radius, byte bGraphicsMode );
 
-	//Draw or clear a box(rectangle) with a single pixel border
+  //Draw or clear a box(rectangle) with a single pixel border
   void drawBox( int x1, int y1, int x2, int y2, byte bGraphicsMode );
 
-	//Draw or clear a filled box(rectangle) with a single pixel border
+  //Draw or clear a filled box(rectangle) with a single pixel border
   void drawFilledBox( int x1, int y1, int x2, int y2, byte bGraphicsMode );
 
   //Draw the selected test pattern
   void drawTestPattern( byte bPattern );
 
- 	//Scan the dot matrix LED panel display, from the RAM mirror out to the display hardware.
- 	//Call 4 times to scan the whole display which is made up of 4 interleaved rows within the 16 total rows.
- 	//Insert the calls to this function into the main loop for the highest call rate, or from a timer interrupt
-	void scanDisplayBySPI();
-    void selectFont(const uint8_t* font); // defualt arguments added, callback now last arg
-    int drawChar(int bX, int bY, const char letter, byte bGraphicsMode);
-    int charWidth(const char letter);
+  //Scan the dot matrix LED panel display, from the RAM mirror out to the display hardware.
+  //Call 4 times to scan the whole display which is made up of 4 interleaved rows within the 16 total rows.
+  //Insert the calls to this function into the main loop for the highest call rate, or from a timer interrupt
+  void scanDisplayBySPI();
 
 
   private:
     void drawCircleSub( int cx, int cy, int x, int y, byte bGraphicsMode );
-	byte *bDMDScreenRAM;
 
-	//Mirror of DMD pixels in RAM, ready to be clocked out by the main loop or high speed timer calls
+    //Mirror of DMD pixels in RAM, ready to be clocked out by the main loop or high speed timer calls
+    byte *bDMDScreenRAM;
+
+    //Marquee values
     char marqueeText[256];
     int marqueeOffset;
     byte marqueeLength;
     int marqueeWidth;
     byte marqueeTop;
+
+    //Pointer to current font
     const uint8_t* Font;
+
+    //Display information
     byte DisplaysWide;
     byte DisplaysHigh;
     byte DisplaysTotal;
 
-	//scanning pointer into bDMDScreenRAM, setup init @ 48 for the first valid scan
-	volatile byte bDMDByte;
+    //scanning pointer into bDMDScreenRAM, setup init @ 48 for the first valid scan
+    volatile byte bDMDByte;
 
 };
 

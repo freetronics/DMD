@@ -79,13 +79,8 @@ void
     unsigned int panelX=bX/DMD_PIXELS_ACROSS;
     unsigned int panelY=bY/DMD_PIXELS_DOWN;
 
-    if (!(bGraphicsMode & GRAPHICS_UNBOUNDED)) {
-        if (bX<0 || bY<0) return;
-	    if (bX >= (DMD_PIXELS_ACROSS*DisplaysWide) || bY >= (DMD_PIXELS_DOWN*DisplaysHigh)) {
-	        return;
-	    }
-    } else {
-	    bGraphicsMode = bGraphicsMode ^ GRAPHICS_UNBOUNDED;
+    if (bX<0 || bY<0 || bX >= (DMD_PIXELS_ACROSS*DisplaysWide) || bY >= (DMD_PIXELS_DOWN*DisplaysHigh)) {
+	    return;
     }
     bX=bX % DMD_PIXELS_ACROSS;
     bY=bY % DMD_PIXELS_DOWN;
@@ -95,48 +90,40 @@ void
                       (bX >> 3) +	// /8 pixels per byte
 	                  (bY << 2);	// x4 bytes for X
 
+    byte lookup = bPixelLookupTable[bX & 0x07];
+
     switch (bGraphicsMode) {
     case GRAPHICS_NORMAL:
-	{
 	    if (bPixel == true)
-		    bDMDScreenRAM[uiDMDRAMPointer] &= ~(bPixelLookupTable[bX & 0x07]);	// zero bit is pixel on
+		bDMDScreenRAM[uiDMDRAMPointer] &= ~lookup;	// zero bit is pixel on
 	    else
-		    bDMDScreenRAM[uiDMDRAMPointer] |= (bPixelLookupTable[bX & 0x07]);	// one bit is pixel off
+		bDMDScreenRAM[uiDMDRAMPointer] |= lookup;	// one bit is pixel off
 	    break;
-	}
     case GRAPHICS_INVERSE:
-	{
 	    if (bPixel == false)
-		    bDMDScreenRAM[uiDMDRAMPointer] &= ~(bPixelLookupTable[bX & 0x07]);	// zero bit is pixel on
+		    bDMDScreenRAM[uiDMDRAMPointer] &= ~lookup;	// zero bit is pixel on
 	    else
-		    bDMDScreenRAM[uiDMDRAMPointer] |= (bPixelLookupTable[bX & 0x07]);	// one bit is pixel off
+		    bDMDScreenRAM[uiDMDRAMPointer] |= lookup;	// one bit is pixel off
 	    break;
-	}
     case GRAPHICS_TOGGLE:
-	{
 	    if (bPixel == true) {
-		    if ((bDMDScreenRAM[uiDMDRAMPointer] & (bPixelLookupTable[bX & 0x07])) == 0)
-		        bDMDScreenRAM[uiDMDRAMPointer] |= (bPixelLookupTable[bX & 0x07]);	// one bit is pixel off
-		    else
-		        bDMDScreenRAM[uiDMDRAMPointer] &= ~(bPixelLookupTable[bX & 0x07]);	// one bit is pixel off
+		if ((bDMDScreenRAM[uiDMDRAMPointer] & lookup) == 0)
+		    bDMDScreenRAM[uiDMDRAMPointer] |= lookup;	// one bit is pixel off
+		else
+		    bDMDScreenRAM[uiDMDRAMPointer] &= ~lookup;	// one bit is pixel off
 	    }
 	    break;
-	}
     case GRAPHICS_OR:
-	{
 	    //only set pixels on
 	    if (bPixel == true)
-		    bDMDScreenRAM[uiDMDRAMPointer] &= ~(bPixelLookupTable[bX & 0x07]);	// zero bit is pixel on
+		    bDMDScreenRAM[uiDMDRAMPointer] &= ~lookup;	// zero bit is pixel on
 	    break;
-	}
     case GRAPHICS_NOR:
-	{
 	    //only clear on pixels
 	    if ((bPixel == true) &&
-           ((bDMDScreenRAM[uiDMDRAMPointer] & (bPixelLookupTable[bX & 0x07])) == 0))
-		    bDMDScreenRAM[uiDMDRAMPointer] |= (bPixelLookupTable[bX & 0x07]);	// one bit is pixel off
+		    ((bDMDScreenRAM[uiDMDRAMPointer] & lookup) == 0))
+		    bDMDScreenRAM[uiDMDRAMPointer] |= lookup;	// one bit is pixel off
 	    break;
-	}
     }
 
 }
@@ -144,25 +131,23 @@ void
 void DMD::drawString(int bX, int bY, const char *bChars, byte length,
 		     byte bGraphicsMode)
 {
-    if (bX >= (DMD_PIXELS_ACROSS * DisplaysWide) || bY > (DMD_PIXELS_DOWN * DisplaysHigh)) return;
+    if (bX >= (DMD_PIXELS_ACROSS*DisplaysWide) || bY >= DMD_PIXELS_DOWN * DisplaysHigh)
+	return;
     uint8_t height = pgm_read_byte(this->Font + FONT_HEIGHT);
+    if (bY+height<0) return;
 
-    int maxLetters = 0;
-    int cX = bX;
-    int cY = bY;
     int strWidth = 0;
 
     for (int i = 0; i < length; i++) {
-	int charWide = charWidth(bChars[i]);
-	if (charWide > 0) {
-	    strWidth += charWide + 1;
-	    if (cX >= -charWide) this->drawChar(cX, cY, bChars[i], bGraphicsMode);
-	    cX = bX + strWidth;
-	    cY = bY;
-	    this->drawLine(cX - 1, cY, cX - 1, cY + height, GRAPHICS_INVERSE);
-	}
-	if (cX >= DMD_PIXELS_ACROSS || cY >= DMD_PIXELS_DOWN)
-	    return;
+        int charWide = this->drawChar(bX+strWidth, bY, bChars[i], bGraphicsMode);
+	    if (charWide > 0) {
+	        strWidth += charWide ;
+	        this->drawLine(bX + strWidth , bY, bX + strWidth , bY + height, GRAPHICS_INVERSE);
+            strWidth++;
+        } else if (charWide < 0) {
+            return;
+        }
+        if ((bX + strWidth) >= DMD_PIXELS_ACROSS * DisplaysWide || bY >= DMD_PIXELS_DOWN * DisplaysHigh) return;
     }
 }
 
@@ -174,7 +159,7 @@ void DMD::drawMarquee(const char *bChars, byte length, byte top)
 	    marqueeWidth += charWidth(bChars[i]) + 1;
     }
     marqueeText[length] = '\0';
-    marqueeOffset = DMD_PIXELS_ACROSS*DisplaysWide;
+    marqueeOffset = DMD_PIXELS_ACROSS * DisplaysWide;
     marqueeLength = length;
     marqueeTop = top;
 }
@@ -184,11 +169,12 @@ boolean DMD::stepMarquee(int amount)
     boolean ret=false;
     marqueeOffset -= amount;
     if (marqueeOffset < -(marqueeWidth)) {
-	    marqueeOffset = DMD_PIXELS_ACROSS*DisplaysWide;
+	    marqueeOffset = DMD_PIXELS_ACROSS * DisplaysWide;
 	    clearScreen(true);
         ret=true;
     }
-    drawString(marqueeOffset, marqueeTop, marqueeText, marqueeLength, GRAPHICS_NORMAL);
+    drawString(marqueeOffset, marqueeTop, marqueeText, marqueeLength,
+	       GRAPHICS_NORMAL);
     return ret;
 }
 
@@ -198,15 +184,10 @@ boolean DMD::stepMarquee(int amount)
 --------------------------------------------------------------------------------------*/
 void DMD::clearScreen(byte bNormal)
 {
-    byte b;
-
-    if (bNormal)
-	    b = 0xFF;		// clear all pixels
-    else
-	    b = 0x00;		// set all pixels
-
-    //initialise the DMD RAM 
-    memset(bDMDScreenRAM,b,DMD_RAM_SIZE_BYTES*DisplaysTotal);
+    if (bNormal) // clear all pixels
+        memset(bDMDScreenRAM,0xFF,DMD_RAM_SIZE_BYTES*DisplaysTotal);
+    else // set all pixels
+        memset(bDMDScreenRAM,0x00,DMD_RAM_SIZE_BYTES*DisplaysTotal);
 }
 
 /*--------------------------------------------------------------------------------------
@@ -324,7 +305,7 @@ void DMD::drawBox(int x1, int y1, int x2, int y2, byte bGraphicsMode)
 void DMD::drawFilledBox(int x1, int y1, int x2, int y2,
 			byte bGraphicsMode)
 {
-    for (byte b = x1; b <= x2; b++) {
+    for (int b = x1; b <= x2; b++) {
 	    drawLine(b, y1, b, y2, bGraphicsMode);
     }
 }
@@ -336,72 +317,33 @@ void DMD::drawTestPattern(byte bPattern)
 {
     unsigned int ui;
 
-    for (ui = 0; ui < 512; ui++) {
-	//512 pixels
-	switch (bPattern) {
-	case PATTERN_ALT_0:	// every alternate pixel, first pixel on
-	    {
-		if ((ui & 1) == 0) {
-		    //even pixel
-		    if ((ui & 32) == 0)
-			    //even row
-			    writePixel((ui & 31), ((ui & ~31) / 32), GRAPHICS_NORMAL, true);
+    int numPixels=DisplaysTotal * DMD_PIXELS_ACROSS * DMD_PIXELS_DOWN;
+    int pixelsWide=DMD_PIXELS_ACROSS*DisplaysWide;
+    for (ui = 0; ui < numPixels; ui++) {
+	    switch (bPattern) {
+	    case PATTERN_ALT_0:	// every alternate pixel, first pixel on
+		    if ((ui & pixelsWide) == 0)
+		        //even row
+		        writePixel((ui & (pixelsWide-1)), ((ui & ~(pixelsWide-1)) / pixelsWide), GRAPHICS_NORMAL, ui & 1);
 		    else
-			    //odd row
-			    writePixel((ui & 31), ((ui & ~31) / 32), GRAPHICS_NORMAL, false);
-		} else {
-		    //odd pixel
-		    if ((ui & 32) == 0)
-			    //even row
-			    writePixel((ui & 31), ((ui & ~31) / 32), GRAPHICS_NORMAL, false);
+		        //odd row
+		        writePixel((ui & (pixelsWide-1)), ((ui & ~(pixelsWide-1)) / pixelsWide), GRAPHICS_NORMAL, !(ui & 1));
+		    break;
+	    case PATTERN_ALT_1:	// every alternate pixel, first pixel off
+		    if ((ui & pixelsWide) == 0)
+		        //even row
+		        writePixel((ui & (pixelsWide-1)), ((ui & ~(pixelsWide-1)) / pixelsWide), GRAPHICS_NORMAL, ui & 1);
 		    else
-			    //odd row
-			    writePixel((ui & 31), ((ui & ~31) / 32), GRAPHICS_NORMAL, true);
-		}
-		break;
-	    }
-	case PATTERN_ALT_1:	// every alternate pixel, first pixel off
-	    {
-		if ((ui & 1) == 0) {
-		    //even pixel
-		    if ((ui & 32) == 0)
-			    //even row
-			    writePixel((ui & 31), ((ui & ~31) / 32), GRAPHICS_NORMAL, false);
-		    else
-			    //odd row
-			    writePixel((ui & 31), ((ui & ~31) / 32), GRAPHICS_NORMAL, true);
-		} else {
-		    //odd pixel
-		    if ((ui & 32) == 0)
-			    //even row
-			    writePixel((ui & 31), ((ui & ~31) / 32), GRAPHICS_NORMAL, true);
-		    else
-			    //odd row
-			    writePixel((ui & 31), ((ui & ~31) / 32), GRAPHICS_NORMAL, false);
-		}
-		break;
-	    }
-	case PATTERN_STRIPE_0:	// vertical stripes, first stripe on
-	    {
-		if ((ui & 1) == 0)
-		    //even pixel
-		    writePixel((ui & 31), ((ui & ~31) / 32), GRAPHICS_NORMAL, true);
-		else
-		    //odd pixel
-		    writePixel((ui & 31), ((ui & ~31) / 32), GRAPHICS_NORMAL, false);
-		break;
-	    }
-	case PATTERN_STRIPE_1:	// vertical stripes, first stripe off
-	    {
-		if ((ui & 1) == 0)
-		    //even pixel
-		    writePixel((ui & 31), ((ui & ~31) / 32), GRAPHICS_NORMAL, false);
-		else
-		    //odd pixel
-		    writePixel((ui & 31), ((ui & ~31) / 32), GRAPHICS_NORMAL, true);
-		break;
-	    }
-	}
+		        //odd row
+		        writePixel((ui & (pixelsWide-1)), ((ui & ~(pixelsWide-1)) / pixelsWide), GRAPHICS_NORMAL, !(ui & 1));
+		    break;
+	    case PATTERN_STRIPE_0:	// vertical stripes, first stripe on
+		    writePixel((ui & (pixelsWide-1)), ((ui & ~(pixelsWide-1)) / pixelsWide), GRAPHICS_NORMAL, ui & 1);
+		    break;
+	    case PATTERN_STRIPE_1:	// vertical stripes, first stripe off
+		    writePixel((ui & (pixelsWide-1)), ((ui & ~(pixelsWide-1)) / pixelsWide), GRAPHICS_NORMAL, !(ui & 1));
+		    break;
+        }
     }
 }
 
@@ -417,11 +359,12 @@ void DMD::scanDisplayBySPI()
     {
         //SPI transfer 128 pixels to the display hardware shift registers
         for (byte panel=0;panel<DisplaysTotal;panel++){
+            int offset=bDMDByte + (panel*DMD_RAM_SIZE_BYTES);
             for (byte i=0;i<4;i++) {
-                SPI.transfer(bDMDScreenRAM[bDMDByte + (panel*DMD_RAM_SIZE_BYTES) + i]);
-                SPI.transfer(bDMDScreenRAM[bDMDByte + (panel*DMD_RAM_SIZE_BYTES) + i - 16]);
-                SPI.transfer(bDMDScreenRAM[bDMDByte + (panel*DMD_RAM_SIZE_BYTES) + i - 32]);
-                SPI.transfer(bDMDScreenRAM[bDMDByte + (panel*DMD_RAM_SIZE_BYTES) + i - 48]);
+                SPI.transfer(bDMDScreenRAM[offset + i]);
+                SPI.transfer(bDMDScreenRAM[offset + i - 16]);
+                SPI.transfer(bDMDScreenRAM[offset + i - 32]);
+                SPI.transfer(bDMDScreenRAM[offset + i - 48]);
             }
         }
 
@@ -455,14 +398,15 @@ void DMD::selectFont(const uint8_t * font)
 }
 
 
-int DMD::drawChar(int bX, int bY, const char letter, byte bGraphicsMode)
+int DMD::drawChar(const int bX, const int bY, const char letter, byte bGraphicsMode)
 {
+    if (bX > (DMD_PIXELS_ACROSS*DisplaysWide) || bY > (DMD_PIXELS_DOWN*DisplaysHigh) ) return -1;
     char c = letter;
     uint8_t height = pgm_read_byte(this->Font + FONT_HEIGHT);
     if (c == ' ') {
-	    int charWide = charWidth('n');
+	    int charWide = charWidth(' ');
 	    this->drawFilledBox(bX, bY, bX + charWide, bY + height, GRAPHICS_INVERSE);
-	    return 0;
+	    return charWide;
     }
     uint8_t width = 0;
     uint8_t bytes = (height + 7) / 8;
@@ -472,7 +416,7 @@ int DMD::drawChar(int bX, int bY, const char letter, byte bGraphicsMode)
 
     uint16_t index = 0;
 
-    if (c < firstChar || c >= (firstChar + charCount)) return 1;
+    if (c < firstChar || c >= (firstChar + charCount)) return 0;
     c -= firstChar;
 
     if (pgm_read_byte(this->Font + FONT_LENGTH) == 0
@@ -488,38 +432,36 @@ int DMD::drawChar(int bX, int bY, const char letter, byte bGraphicsMode)
 	    index = index * bytes + charCount + FONT_WIDTH_TABLE;
 	    width = pgm_read_byte(this->Font + FONT_WIDTH_TABLE + c);
     }
-    if (bX > (DMD_PIXELS_ACROSS*DisplaysWide) || bY > (DMD_PIXELS_DOWN*DisplaysHigh) || bX < -width || bY < -height) return -1;
+    if (bX < -width || bY < -height) return width;
+
     // last but not least, draw the character
     for (uint8_t j = 0; j < width; j++) { // Width
-	    for (uint8_t i = bytes - 1; i < 254; i--) { // Vertical bytes
+	    for (uint8_t i = bytes - 1; i < 254; i--) { // Vertical Bytes
 	        uint8_t data = pgm_read_byte(this->Font + index + j + (i * width));
+		    int offset = (i * 8);
+		    if ((i == bytes - 1) && bytes > 1) {
+		        offset = height - 8;
+            }
 	        for (uint8_t k = 0; k < 8; k++) { // Vertical bits
-		        int offset = (i * 8) + k;
-		        if ((i == bytes - 1) && bytes > 1) {
-		            offset = offset - (8 - (height - (i * 8)));
-		            if (offset < i * 8) offset = 255;
-		        }
-		        if (offset <= height) {
+		        if ((offset+k >= i*8) && (offset+k <= height)) {
 		            if (data & (1 << k)) {
-			            writePixel(bX + j, bY + offset, bGraphicsMode, true);
+			            writePixel(bX + j, bY + offset + k, bGraphicsMode, true);
 		            } else {
-			            writePixel(bX + j, bY + offset, bGraphicsMode, false);
+			            writePixel(bX + j, bY + offset + k, bGraphicsMode, false);
 		            }
 		        }
 	        }
 	    }
     }
-    return 0;
+    return width;
 }
 
 int DMD::charWidth(const char letter)
 {
     char c = letter;
-    if (c == ' ')
-	c = 'n';
+    // Space is often not included in font so use width of 'n'
+    if (c == ' ') c = 'n';
     uint8_t width = 0;
-    uint8_t height = pgm_read_byte(this->Font + FONT_HEIGHT);
-    uint8_t bytes = (height + 7) / 8;
 
     uint8_t firstChar = pgm_read_byte(this->Font + FONT_FIRST_CHAR);
     uint8_t charCount = pgm_read_byte(this->Font + FONT_CHAR_COUNT);
@@ -527,22 +469,17 @@ int DMD::charWidth(const char letter)
     uint16_t index = 0;
 
     if (c < firstChar || c >= (firstChar + charCount)) {
-	return 0;
+	    return 0;
     }
     c -= firstChar;
 
     if (pgm_read_byte(this->Font + FONT_LENGTH) == 0
 	&& pgm_read_byte(this->Font + FONT_LENGTH + 1) == 0) {
-	// zero length is flag indicating fixed width font (array does not contain width data entries)
-	width = pgm_read_byte(this->Font + FONT_FIXED_WIDTH);
-	index = c * bytes * width + FONT_WIDTH_TABLE;
+	    // zero length is flag indicating fixed width font (array does not contain width data entries)
+	    width = pgm_read_byte(this->Font + FONT_FIXED_WIDTH);
     } else {
-	// variable width font, read width data, to get the index
-	for (uint8_t i = 0; i < c; i++) {
-	    index += pgm_read_byte(this->Font + FONT_WIDTH_TABLE + i);
-	}
-	index = index * bytes + charCount + FONT_WIDTH_TABLE;
-	width = pgm_read_byte(this->Font + FONT_WIDTH_TABLE + c);
+	    // variable width font, read width data
+	    width = pgm_read_byte(this->Font + FONT_WIDTH_TABLE + c);
     }
     return width;
 }
