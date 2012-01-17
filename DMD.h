@@ -139,10 +139,10 @@ class DMD
   int charWidth(const char letter);
 
   //Draw a scrolling string
-  void drawMarquee( const char* bChars, byte length, byte top);
+  void drawMarquee( const char* bChars, byte length, int left, int top);
 
   //Move the maquee accross by amount
-  boolean stepMarquee( int amount);
+  boolean stepMarquee( int amountX, int amountY);
 
   //Clear the screen in DMD RAM
   void clearScreen( byte bNormal );
@@ -176,10 +176,11 @@ class DMD
 
     //Marquee values
     char marqueeText[256];
-    int marqueeOffset;
     byte marqueeLength;
     int marqueeWidth;
-    byte marqueeTop;
+    int marqueeHeight;
+    int marqueeOffsetX;
+    int marqueeOffsetY;
 
     //Pointer to current font
     const uint8_t* Font;

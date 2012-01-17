@@ -99,13 +99,13 @@ void loop(void)
    dmd.drawChar( 15,  3, ':', GRAPHICS_OR     );   // clock colon overlay on
    delay( 1000 );
 
-   dmd.drawMarquee("Scrolling Text",14,0);
+   dmd.drawMarquee("Scrolling Text",14,31,0);
    long start=millis();
    long timer=start;
    boolean ret=false;
    while(!ret){
      if ((timer+30) < millis()) {
-       ret=dmd.stepMarquee(1);
+       ret=dmd.stepMarquee(-1,0);
        timer=millis();
      }
    }

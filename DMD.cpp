@@ -137,6 +137,7 @@ void DMD::drawString(int bX, int bY, const char *bChars, byte length,
     if (bY+height<0) return;
 
     int strWidth = 0;
+	this->drawLine(bX -1 , bY, bX -1 , bY + height, GRAPHICS_INVERSE);
 
     for (int i = 0; i < length; i++) {
         int charWide = this->drawChar(bX+strWidth, bY, bChars[i], bGraphicsMode);
@@ -151,29 +152,46 @@ void DMD::drawString(int bX, int bY, const char *bChars, byte length,
     }
 }
 
-void DMD::drawMarquee(const char *bChars, byte length, byte top)
+void DMD::drawMarquee(const char *bChars, byte length, int left, int top)
 {
     marqueeWidth = 0;
     for (int i = 0; i < length; i++) {
 	    marqueeText[i] = bChars[i];
 	    marqueeWidth += charWidth(bChars[i]) + 1;
     }
+    marqueeHeight=pgm_read_byte(this->Font + FONT_HEIGHT);
     marqueeText[length] = '\0';
-    marqueeOffset = DMD_PIXELS_ACROSS * DisplaysWide;
+    marqueeOffsetY = top;
+    marqueeOffsetX = left;
     marqueeLength = length;
-    marqueeTop = top;
 }
 
-boolean DMD::stepMarquee(int amount)
+boolean DMD::stepMarquee(int amountX, int amountY)
 {
     boolean ret=false;
-    marqueeOffset -= amount;
-    if (marqueeOffset < -(marqueeWidth)) {
-	    marqueeOffset = DMD_PIXELS_ACROSS * DisplaysWide;
+    marqueeOffsetX += amountX;
+    marqueeOffsetY += amountY;
+    if (marqueeOffsetX < -marqueeWidth) {
+	    marqueeOffsetX = DMD_PIXELS_ACROSS * DisplaysWide;
+	    clearScreen(true);
+        ret=true;
+    } else if (marqueeOffsetX > DMD_PIXELS_ACROSS * DisplaysWide) {
+	    marqueeOffsetX = -marqueeWidth;
 	    clearScreen(true);
         ret=true;
     }
-    drawString(marqueeOffset, marqueeTop, marqueeText, marqueeLength,
+    
+        
+    if (marqueeOffsetY < -marqueeHeight) {
+	    marqueeOffsetY = DMD_PIXELS_DOWN * DisplaysHigh;
+	    clearScreen(true);
+        ret=true;
+    } else if (marqueeOffsetY > DMD_PIXELS_DOWN * DisplaysHigh) {
+	    marqueeOffsetY = -marqueeHeight;
+	    clearScreen(true);
+        ret=true;
+    }
+    drawString(marqueeOffsetX, marqueeOffsetY, marqueeText, marqueeLength,
 	       GRAPHICS_NORMAL);
     return ret;
 }
