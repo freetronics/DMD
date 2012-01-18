@@ -350,10 +350,10 @@ void DMD::drawTestPattern(byte bPattern)
 	    case PATTERN_ALT_1:	// every alternate pixel, first pixel off
 		    if ((ui & pixelsWide) == 0)
 		        //even row
-		        writePixel((ui & (pixelsWide-1)), ((ui & ~(pixelsWide-1)) / pixelsWide), GRAPHICS_NORMAL, ui & 1);
+		        writePixel((ui & (pixelsWide-1)), ((ui & ~(pixelsWide-1)) / pixelsWide), GRAPHICS_NORMAL, !(ui & 1));
 		    else
 		        //odd row
-		        writePixel((ui & (pixelsWide-1)), ((ui & ~(pixelsWide-1)) / pixelsWide), GRAPHICS_NORMAL, !(ui & 1));
+		        writePixel((ui & (pixelsWide-1)), ((ui & ~(pixelsWide-1)) / pixelsWide), GRAPHICS_NORMAL, ui & 1);
 		    break;
 	    case PATTERN_STRIPE_0:	// vertical stripes, first stripe on
 		    writePixel((ui & (pixelsWide-1)), ((ui & ~(pixelsWide-1)) / pixelsWide), GRAPHICS_NORMAL, ui & 1);
