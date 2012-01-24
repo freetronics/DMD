@@ -135,18 +135,24 @@ void loop(void)
    dmd.drawBox(  0,  0, (32*DISPLAYS_ACROSS)-1, (16*DISPLAYS_DOWN)-1, GRAPHICS_NORMAL );
    delay( 1000 );
    
-   // draw an X
-   dmd.drawLine(  0,  0, 11, 15, GRAPHICS_NORMAL );
-   dmd.drawLine(  0, 15, 11,  0, GRAPHICS_NORMAL );
-   delay( 1000 );
+   for (byte y=0;y<DISPLAYS_DOWN;y++) {
+     for (byte x=0;x<DISPLAYS_ACROSS;x++) {
+       // draw an X
+       int ix=32*x;
+       int iy=16*y;
+       dmd.drawLine(  0+ix,  0+iy, 11+ix, 15+iy, GRAPHICS_NORMAL );
+       dmd.drawLine(  0+ix, 15+iy, 11+ix,  0+iy, GRAPHICS_NORMAL );
+       delay( 1000 );
    
-   // draw a circle
-   dmd.drawCircle( 16,  8,  5, GRAPHICS_NORMAL );
-   delay( 1000 );
+       // draw a circle
+       dmd.drawCircle( 16+ix,  8+iy,  5, GRAPHICS_NORMAL );
+       delay( 1000 );
    
-   // draw a filled box
-   dmd.drawFilledBox( 24, 3, 29, 13, GRAPHICS_NORMAL );
-   delay( 1000 );
+       // draw a filled box
+       dmd.drawFilledBox( 24+ix, 3+iy, 29+ix, 13+iy, GRAPHICS_NORMAL );
+       delay( 1000 );
+     }
+   }
 
    // stripe chaser
    for( b = 0 ; b < 20 ; b++ )
