@@ -36,6 +36,9 @@ DMD::DMD(byte panelsWide, byte panelsHigh)
     DisplaysWide=panelsWide;
     DisplaysHigh=panelsHigh;
     DisplaysTotal=DisplaysWide*DisplaysHigh;
+    row1 = DisplaysTotal<<4;
+    row2 = DisplaysTotal<<5;
+    row3 = ((DisplaysTotal<<2)*3)<<2;
     bDMDScreenRAM = (byte *) malloc(DisplaysTotal*DMD_RAM_SIZE_BYTES);
 
     // initialize the SPI port
@@ -61,7 +64,7 @@ DMD::DMD(byte panelsWide, byte panelsHigh)
     clearScreen(true);
 
     // init the scan line/ram pointer to the required start point
-    bDMDByte = 48;
+    bDMDByte = 0;
 }
 
 //DMD::~DMD()
@@ -73,22 +76,18 @@ DMD::DMD(byte panelsWide, byte panelsHigh)
  Set or clear a pixel at the x and y location (0,0 is the top left corner)
 --------------------------------------------------------------------------------------*/
 void
- DMD::writePixel(int bX, int bY, byte bGraphicsMode, byte bPixel)
+ DMD::writePixel(unsigned int bX, unsigned int bY, byte bGraphicsMode, byte bPixel)
 {
     unsigned int uiDMDRAMPointer;
-    unsigned int panelX=bX/DMD_PIXELS_ACROSS;
-    unsigned int panelY=bY/DMD_PIXELS_DOWN;
 
-    if (bX<0 || bY<0 || bX >= (DMD_PIXELS_ACROSS*DisplaysWide) || bY >= (DMD_PIXELS_DOWN*DisplaysHigh)) {
+    if (bX >= (DMD_PIXELS_ACROSS*DisplaysWide) || bY >= (DMD_PIXELS_DOWN * DisplaysHigh)) {
 	    return;
     }
-    bX=bX % DMD_PIXELS_ACROSS;
+    byte panel=(bX/DMD_PIXELS_ACROSS) + (DisplaysWide*(bY/DMD_PIXELS_DOWN));
+    bX=(bX % DMD_PIXELS_ACROSS) + (panel<<5);
     bY=bY % DMD_PIXELS_DOWN;
     //set pointer to DMD RAM byte to be modified
-    uiDMDRAMPointer = (panelX * DMD_RAM_SIZE_BYTES) +
-                      (panelY * DisplaysWide * DMD_RAM_SIZE_BYTES) +
-                      (bX >> 3) +	// /8 pixels per byte
-	                  (bY << 2);	// x4 bytes for X
+    uiDMDRAMPointer = bX/8 + bY*(DisplaysTotal<<2);
 
     byte lookup = bPixelLookupTable[bX & 0x07];
 
@@ -164,6 +163,8 @@ void DMD::drawMarquee(const char *bChars, byte length, int left, int top)
     marqueeOffsetY = top;
     marqueeOffsetX = left;
     marqueeLength = length;
+    drawString(marqueeOffsetX, marqueeOffsetY, marqueeText, marqueeLength,
+	   GRAPHICS_NORMAL);
 }
 
 boolean DMD::stepMarquee(int amountX, int amountY)
@@ -191,8 +192,53 @@ boolean DMD::stepMarquee(int amountX, int amountY)
 	    clearScreen(true);
         ret=true;
     }
-    drawString(marqueeOffsetX, marqueeOffsetY, marqueeText, marqueeLength,
+
+    // Special case horizontal scrolling to improve speed
+    if (amountY==0 && amountX==-1) {
+        // Shift entire screen one bit
+        for (int i=0; i<DMD_RAM_SIZE_BYTES*DisplaysTotal;i++) {
+            if ((i%(DisplaysWide*4)) == (DisplaysWide*4) -1) {
+                bDMDScreenRAM[i]=(bDMDScreenRAM[i]<<1)+1;
+            } else {
+                bDMDScreenRAM[i]=(bDMDScreenRAM[i]<<1) + ((bDMDScreenRAM[i+1] & 0x80) >>7);
+            }
+        }
+
+        // Redraw last char on screen
+        int strWidth=marqueeOffsetX;
+        for (byte i=0; i < marqueeLength; i++) {
+            int wide = charWidth(marqueeText[i]);
+            if (strWidth+wide >= DisplaysWide*DMD_PIXELS_ACROSS) {
+                drawChar(strWidth, marqueeOffsetY,marqueeText[i],GRAPHICS_NORMAL);
+                return ret;
+            }
+            strWidth += wide+1;
+        }
+    } else if (amountY==0 && amountX==1) {
+        // Shift entire screen one bit
+        for (int i=(DMD_RAM_SIZE_BYTES*DisplaysTotal)-1; i>=0;i--) {
+            if ((i%(DisplaysWide*4)) == 0) {
+                bDMDScreenRAM[i]=(bDMDScreenRAM[i]>>1)+128;
+            } else {
+                bDMDScreenRAM[i]=(bDMDScreenRAM[i]>>1) + ((bDMDScreenRAM[i-1] & 1) <<7);
+            }
+        }
+
+        // Redraw last char on screen
+        int strWidth=marqueeOffsetX;
+        for (byte i=0; i < marqueeLength; i++) {
+            int wide = charWidth(marqueeText[i]);
+            if (strWidth+wide >= 0) {
+                drawChar(strWidth, marqueeOffsetY,marqueeText[i],GRAPHICS_NORMAL);
+                return ret;
+            }
+            strWidth += wide+1;
+        }
+    } else {
+        drawString(marqueeOffsetX, marqueeOffsetY, marqueeText, marqueeLength,
 	       GRAPHICS_NORMAL);
+    }
+
     return ret;
 }
 
@@ -375,35 +421,34 @@ void DMD::scanDisplayBySPI()
     //if PIN_OTHER_SPI_nCS is in use during a DMD scan request then scanDisplayBySPI() will exit without conflict! (and skip that scan)
     if( digitalRead( PIN_OTHER_SPI_nCS ) == HIGH )
     {
-        //SPI transfer 128 pixels to the display hardware shift registers
-        for (byte panel=0;panel<DisplaysTotal;panel++){
-            int offset=bDMDByte + (panel*DMD_RAM_SIZE_BYTES);
-            for (byte i=0;i<4;i++) {
-                SPI.transfer(bDMDScreenRAM[offset + i]);
-                SPI.transfer(bDMDScreenRAM[offset + i - 16]);
-                SPI.transfer(bDMDScreenRAM[offset + i - 32]);
-                SPI.transfer(bDMDScreenRAM[offset + i - 48]);
-            }
+        //SPI transfer pixels to the display hardware shift registers
+        int rowsize=DisplaysTotal<<2;
+        int offset=rowsize * bDMDByte;
+        for (int i=0;i<rowsize;i++) {
+            SPI.transfer(bDMDScreenRAM[offset+i+row3]);
+            SPI.transfer(bDMDScreenRAM[offset+i+row2]);
+            SPI.transfer(bDMDScreenRAM[offset+i+row1]);
+            SPI.transfer(bDMDScreenRAM[offset+i]);
         }
 
         OE_DMD_ROWS_OFF();
         LATCH_DMD_SHIFT_REG_TO_OUTPUT();
         switch (bDMDByte) {
-        case 48:			// row 1, 5, 9, 13 were clocked out
+        case 0:			// row 1, 5, 9, 13 were clocked out
             LIGHT_DMD_ROW_01_05_09_13();
-            bDMDByte=52;
+            bDMDByte=1;
             break;
-        case 52:			// row 2, 6, 10, 14 were clocked out
+        case 1:			// row 2, 6, 10, 14 were clocked out
             LIGHT_DMD_ROW_02_06_10_14();
-            bDMDByte=56;
+            bDMDByte=2;
             break;
-        case 56:			// row 3, 7, 11, 15 were clocked out
+        case 2:			// row 3, 7, 11, 15 were clocked out
             LIGHT_DMD_ROW_03_07_11_15();
-            bDMDByte=60;
+            bDMDByte=3;
             break;
-        case 60:			// row 4, 8, 12, 16 were clocked out
+        case 3:			// row 4, 8, 12, 16 were clocked out
             LIGHT_DMD_ROW_04_08_12_16();
-            bDMDByte=48;
+            bDMDByte=0;
             break;
         }
         OE_DMD_ROWS_ON();

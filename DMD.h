@@ -124,7 +124,7 @@ class DMD
 	//virtual ~DMD();
 
   //Set or clear a pixel at the x and y location (0,0 is the top left corner)
-  void writePixel( int bX, int bY, byte bGraphicsMode, byte bPixel );
+  void writePixel( unsigned int bX, unsigned int bY, byte bGraphicsMode, byte bPixel );
 
   //Draw a string
   void drawString( int bX, int bY, const char* bChars, byte length, byte bGraphicsMode);
@@ -189,6 +189,7 @@ class DMD
     byte DisplaysWide;
     byte DisplaysHigh;
     byte DisplaysTotal;
+    int row1, row2, row3;
 
     //scanning pointer into bDMDScreenRAM, setup init @ 48 for the first valid scan
     volatile byte bDMDByte;
