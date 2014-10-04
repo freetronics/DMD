@@ -45,7 +45,7 @@ DMD::DMD(byte panelsWide, byte panelsHigh)
     SPI.begin();		// probably don't need this since it inits the port pins only, which we do just below with the appropriate DMD interface setup
     SPI.setBitOrder(MSBFIRST);	//
     SPI.setDataMode(SPI_MODE0);	// CPOL=0, CPHA=0
-    SPI.setClockDivider(SPI_CLOCK_DIV128);	// system clock / 2 = 8MHz SPI CLK to shift registers
+    SPI.setClockDivider(SPI_CLOCK_DIV2);	// system clock / 2 = 8MHz SPI CLK to shift registers
 
     digitalWrite(PIN_DMD_A, LOW);	// 
     digitalWrite(PIN_DMD_B, LOW);	// 
@@ -461,10 +461,10 @@ void DMD::selectFont(const uint8_t * font)
 }
 
 
-int DMD::drawChar(const int bX, const int bY, const char letter, byte bGraphicsMode)
+int DMD::drawChar(const int bX, const int bY, const unsigned char letter, byte bGraphicsMode)
 {
     if (bX > (DMD_PIXELS_ACROSS*DisplaysWide) || bY > (DMD_PIXELS_DOWN*DisplaysHigh) ) return -1;
-    char c = letter;
+    unsigned char c = letter;
     uint8_t height = pgm_read_byte(this->Font + FONT_HEIGHT);
     if (c == ' ') {
 	    int charWide = charWidth(' ');
@@ -493,7 +493,7 @@ int DMD::drawChar(const int bX, const int bY, const char letter, byte bGraphicsM
 	        index += pgm_read_byte(this->Font + FONT_WIDTH_TABLE + i);
 	    }
 	    index = index * bytes + charCount + FONT_WIDTH_TABLE;
-	    width = pgm_read_byte(this->Font + FONT_WIDTH_TABLE + c);
+	    width = pgm_read_byte(this->Font + FONT_WIDTH_TABLE + (unsigned char) c);
     }
     if (bX < -width || bY < -height) return width;
 
@@ -519,9 +519,9 @@ int DMD::drawChar(const int bX, const int bY, const char letter, byte bGraphicsM
     return width;
 }
 
-int DMD::charWidth(const char letter)
+int DMD::charWidth(const unsigned char letter)
 {
-    char c = letter;
+    unsigned char c = letter;
     // Space is often not included in font so use width of 'n'
     if (c == ' ') c = 'n';
     uint8_t width = 0;
