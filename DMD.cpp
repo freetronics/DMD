@@ -493,7 +493,7 @@ int DMD::drawChar(const int bX, const int bY, const unsigned char letter, byte b
 	        index += pgm_read_byte(this->Font + FONT_WIDTH_TABLE + i);
 	    }
 	    index = index * bytes + charCount + FONT_WIDTH_TABLE;
-	    width = pgm_read_byte(this->Font + FONT_WIDTH_TABLE + (unsigned char) c);
+	    width = pgm_read_byte(this->Font + FONT_WIDTH_TABLE + c);
     }
     if (bX < -width || bY < -height) return width;
 
