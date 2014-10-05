@@ -127,13 +127,12 @@ void
 
 }
 
-void DMD::drawString(int bX, int bY, const char *bChars, byte length,
+int DMD::drawString(int bX, int bY, const char *bChars, byte length,
 		     byte bGraphicsMode)
 {
-    if (bX >= (DMD_PIXELS_ACROSS*DisplaysWide) || bY >= DMD_PIXELS_DOWN * DisplaysHigh)
-	return;
+    if (bX >= (DMD_PIXELS_ACROSS*DisplaysWide) || bY >= DMD_PIXELS_DOWN * DisplaysHigh) return 0;
     uint8_t height = pgm_read_byte(this->Font + FONT_HEIGHT);
-    if (bY+height<0) return;
+    if (bY+height<0) return 0;
 
     int strWidth = 0;
 	this->drawLine(bX -1 , bY, bX -1 , bY + height, GRAPHICS_INVERSE);
@@ -145,13 +144,14 @@ void DMD::drawString(int bX, int bY, const char *bChars, byte length,
 	        this->drawLine(bX + strWidth , bY, bX + strWidth , bY + height, GRAPHICS_INVERSE);
             strWidth++;
         } else if (charWide < 0) {
-            return;
+            return 0;
         }
-        if ((bX + strWidth) >= DMD_PIXELS_ACROSS * DisplaysWide || bY >= DMD_PIXELS_DOWN * DisplaysHigh) return;
+        if ((bX + strWidth) >= DMD_PIXELS_ACROSS * DisplaysWide || bY >= DMD_PIXELS_DOWN * DisplaysHigh) return 0;
     }
+    return strWidth;
 }
 
-void DMD::drawMarquee(const char *bChars, byte length, int left, int top)
+int DMD::drawMarquee(const char *bChars, byte length, int left, int top)
 {
     marqueeWidth = 0;
     for (int i = 0; i < length; i++) {
@@ -165,6 +165,7 @@ void DMD::drawMarquee(const char *bChars, byte length, int left, int top)
     marqueeLength = length;
     drawString(marqueeOffsetX, marqueeOffsetY, marqueeText, marqueeLength,
 	   GRAPHICS_NORMAL);
+    return marqueeWidth;
 }
 
 boolean DMD::stepMarquee(int amountX, int amountY)

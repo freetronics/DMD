@@ -127,7 +127,7 @@ class DMD
   void writePixel( unsigned int bX, unsigned int bY, byte bGraphicsMode, byte bPixel );
 
   //Draw a string
-  void drawString( int bX, int bY, const char* bChars, byte length, byte bGraphicsMode);
+  int drawString( int bX, int bY, const char* bChars, byte length, byte bGraphicsMode);
 
   //Select a text font
   void selectFont(const uint8_t* font);
@@ -139,7 +139,7 @@ class DMD
   int charWidth(const char letter);
 
   //Draw a scrolling string
-  void drawMarquee( const char* bChars, byte length, int left, int top);
+  int drawMarquee( const char* bChars, byte length, int left, int top);
 
   //Move the maquee accross by amount
   boolean stepMarquee( int amountX, int amountY);
