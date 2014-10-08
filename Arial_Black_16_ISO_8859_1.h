@@ -1,7 +1,9 @@
 
 /*
  *
- * Arial_Black_16_Extended
+ * Arial_Black_16_ISO_8859_1
+ *
+ * Font containing all characters of the ISO-8859-1 (aka. ISO Latin-1) charset.
  *
  * created with FontCreator
  * written by F. Maximilian Thiele
@@ -9,7 +11,7 @@
  * http://www.apetech.de/fontCreator
  * me@apetech.de
  *
- * File Name           : ArialBlack16.h
+ * File Name           : Arial_Black_16_ISO_8859_1.h
  * Date                : 04.10.2014
  * Font size in bytes  : 25654
  * Font width          : 10
@@ -38,13 +40,13 @@
 #include <inttypes.h>
 #include <avr/pgmspace.h>
 
-#ifndef ARIAL_BLACK_16_EXTENDED_H
-#define ARIAL_BLACK_16_EXTENDED_H
+#ifndef ARIAL_BLACK_16_ISO_8859_1_H
+#define ARIAL_BLACK_16_ISO_8859_1_H
 
-#define ARIAL_BLACK_16_EXTENDED_WIDTH 10
-#define ARIAL_BLACK_16_EXTENDED_HEIGHT 16
+#define ARIAL_BLACK_16_ISO_8859_1_WIDTH 10
+#define ARIAL_BLACK_16_ISO_8859_1_HEIGHT 16
 
-const static uint8_t Arial_Black_16_Extended[] PROGMEM = {
+const static uint8_t Arial_Black_16_ISO_8859_1[] PROGMEM = {
     0x64, 0x36, // size
     0x0A, // width
     0x10, // height
