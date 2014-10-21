@@ -45,7 +45,7 @@ DMD::DMD(byte panelsWide, byte panelsHigh)
     SPI.begin();		// probably don't need this since it inits the port pins only, which we do just below with the appropriate DMD interface setup
     SPI.setBitOrder(MSBFIRST);	//
     SPI.setDataMode(SPI_MODE0);	// CPOL=0, CPHA=0
-    SPI.setClockDivider(SPI_CLOCK_DIV128);	// system clock / 2 = 8MHz SPI CLK to shift registers
+    SPI.setClockDivider(SPI_CLOCK_DIV4);	// system clock / 4 = 4MHz SPI CLK to shift registers. If using a short cable, can put SPI_CLOCK_DIV2 here for 2x faster updates
 
     digitalWrite(PIN_DMD_A, LOW);	// 
     digitalWrite(PIN_DMD_B, LOW);	// 
