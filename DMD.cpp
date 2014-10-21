@@ -461,10 +461,10 @@ void DMD::selectFont(const uint8_t * font)
 }
 
 
-int DMD::drawChar(const int bX, const int bY, const char letter, byte bGraphicsMode)
+int DMD::drawChar(const int bX, const int bY, const unsigned char letter, byte bGraphicsMode)
 {
     if (bX > (DMD_PIXELS_ACROSS*DisplaysWide) || bY > (DMD_PIXELS_DOWN*DisplaysHigh) ) return -1;
-    char c = letter;
+    unsigned char c = letter;
     uint8_t height = pgm_read_byte(this->Font + FONT_HEIGHT);
     if (c == ' ') {
 	    int charWide = charWidth(' ');
@@ -519,9 +519,9 @@ int DMD::drawChar(const int bX, const int bY, const char letter, byte bGraphicsM
     return width;
 }
 
-int DMD::charWidth(const char letter)
+int DMD::charWidth(const unsigned char letter)
 {
-    char c = letter;
+    unsigned char c = letter;
     // Space is often not included in font so use width of 'n'
     if (c == ' ') c = 'n';
     uint8_t width = 0;

@@ -133,10 +133,10 @@ class DMD
   void selectFont(const uint8_t* font);
 
   //Draw a single character
-  int drawChar(const int bX, const int bY, const char letter, byte bGraphicsMode);
+  int drawChar(const int bX, const int bY, const unsigned char letter, byte bGraphicsMode);
 
   //Find the width of a character
-  int charWidth(const char letter);
+  int charWidth(const unsigned char letter);
 
   //Draw a scrolling string
   void drawMarquee( const char* bChars, byte length, int left, int top);
