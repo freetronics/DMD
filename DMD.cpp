@@ -143,7 +143,7 @@ void DMD::drawString(int bX, int bY, const char *bChars, byte length,
 	    if (charWide > 0) {
 	        strWidth += charWide ;
 	        this->drawLine(bX + strWidth , bY, bX + strWidth , bY + height, GRAPHICS_INVERSE);
-            strWidth++;
+                //strWidth++;
         } else if (charWide < 0) {
             return;
         }
@@ -156,7 +156,7 @@ void DMD::drawMarquee(const char *bChars, byte length, int left, int top)
     marqueeWidth = 0;
     for (int i = 0; i < length; i++) {
 	    marqueeText[i] = bChars[i];
-	    marqueeWidth += charWidth(bChars[i]) + 1;
+	    marqueeWidth += charWidth(bChars[i]);
     }
     marqueeHeight=pgm_read_byte(this->Font + FONT_HEIGHT);
     marqueeText[length] = '\0';
@@ -209,10 +209,10 @@ boolean DMD::stepMarquee(int amountX, int amountY)
         for (byte i=0; i < marqueeLength; i++) {
             int wide = charWidth(marqueeText[i]);
             if (strWidth+wide >= DisplaysWide*DMD_PIXELS_ACROSS) {
-                drawChar(strWidth, marqueeOffsetY,marqueeText[i],GRAPHICS_NORMAL);
+                drawChar(strWidth-1, marqueeOffsetY,marqueeText[i],GRAPHICS_NORMAL);
                 return ret;
             }
-            strWidth += wide+1;
+            strWidth += wide;
         }
     } else if (amountY==0 && amountX==1) {
         // Shift entire screen one bit
@@ -229,10 +229,10 @@ boolean DMD::stepMarquee(int amountX, int amountY)
         for (byte i=0; i < marqueeLength; i++) {
             int wide = charWidth(marqueeText[i]);
             if (strWidth+wide >= 0) {
-                drawChar(strWidth, marqueeOffsetY,marqueeText[i],GRAPHICS_NORMAL);
+                drawChar(strWidth+1, marqueeOffsetY,marqueeText[i],GRAPHICS_NORMAL);
                 return ret;
             }
-            strWidth += wide+1;
+            strWidth += wide;
         }
     } else {
         drawString(marqueeOffsetX, marqueeOffsetY, marqueeText, marqueeLength,
