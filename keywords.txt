@@ -6,38 +6,38 @@
 # Datatypes (KEYWORD1)
 #######################################
 
-DMD					KEYWORD1
+DMD	KEYWORD1
 
 #######################################
 # Methods and Functions (KEYWORD2)
 #######################################
 
-writePixel			KEYWORD2
-drawString			KEYWORD2
-drawChar			KEYWORD2
-selectFont			KEYWORD2
-charWidth			KEYWORD2
-drawMarquee			KEYWORD2
-stepMarquee			KEYWORD2
-clearScreen			KEYWORD2
-drawLine			KEYWORD2
-drawCircle			KEYWORD2
-drawBox				KEYWORD2
-drawFilledBox		KEYWORD2
-drawTestPattern		KEYWORD2
+writePixel	KEYWORD2
+drawString	KEYWORD2
+drawChar	KEYWORD2
+selectFont	KEYWORD2
+charWidth	KEYWORD2
+drawMarquee	KEYWORD2
+stepMarquee	KEYWORD2
+clearScreen	KEYWORD2
+drawLine	KEYWORD2
+drawCircle	KEYWORD2
+drawBox	KEYWORD2
+drawFilledBox	KEYWORD2
+drawTestPattern	KEYWORD2
 scanDisplayBySPI	KEYWORD2
 
 #######################################
 # Constants (LITERAL1)
 #######################################
 
-GRAPHICS_NORMAL		LITERAL1
+GRAPHICS_NORMAL	LITERAL1
 GRAPHICS_INVERSE	LITERAL1
-GRAPHICS_TOGGLE		LITERAL1
-GRAPHICS_OR			LITERAL1
-GRAPHICS_NOR		LITERAL1
+GRAPHICS_TOGGLE	LITERAL1
+GRAPHICS_OR	LITERAL1
+GRAPHICS_NOR	LITERAL1
 
-PATTERN_ALT_0		LITERAL1
-PATTERN_ALT_1		LITERAL1
+PATTERN_ALT_0	LITERAL1
+PATTERN_ALT_1	LITERAL1
 PATTERN_STRIPE_0	LITERAL1
 PATTERN_STRIPE_1	LITERAL1
